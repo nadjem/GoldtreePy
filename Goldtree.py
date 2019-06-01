@@ -69,13 +69,15 @@ def main():
     c=Command.read()
     if c.magic_ok():
         if c.has_id(CommandId.ConnectionResponse):
-            print("Connection was established with Goldleaf.")
+            sys.stdout.write("Connection was established with Goldleaf.")
+            sys.stdout.flush()
             c=Command(CommandId.NSPName)
             c.write()
             base_name=os.path.basename(sys.argv[1])
             write(struct.pack("<I",len(base_name)))
             write(base_name.encode())
-            print("NSP name sent to Goldleaf")
+            sys.stdout.write("NSP name sent to Goldleaf")
+            sys.stdout.flush()
             while True:
                 try:
                     c=Command.read()
@@ -84,7 +86,8 @@ def main():
                     pass
             if c.magic_ok():
                 if c.has_id(CommandId.Start):
-                    print("Goldleaf is ready for the installation. Preparing everything...")
+                    sys.stdout.write("Goldleaf is ready for the installation. Preparing everything...")
+                    sys.stdout.flush()
                     pnsp=PFS0(sys.argv[1])
                     c=Command(CommandId.NSPData)
                     c.write()
@@ -104,35 +107,46 @@ def main():
                         if c.magic_ok():
                             if c.has_id(CommandId.NSPContent):
                                 idx=struct.unpack("<I",read(4))[0]
-                                print("Sending content '"+pnsp.files[idx].name+"'... ("+str(idx+1)+" of "+str(len(pnsp.files))+")")
+                                sys.stdout.write("Sending content '"+pnsp.files[idx].name+"'... ("+str(idx+1)+" of "+str(len(pnsp.files))+")")
+                                sys.stdout.flush()
                                 for buf in pnsp.read_chunks(idx):
                                     write(buf)
-                                print("Content was sent to Goldleaf.")
+                                sys.stdout.write("Content was sent to Goldleaf.")
+                                sys.stdout.flush()
                             elif c.has_id(CommandId.NSPTicket):
-                                print("Sending ticket file...")
+                                sys.stdout.write("Sending ticket file...")
+                                sys.stdout.flush()
                                 write(pnsp.read_file(tik_idx))
                             elif c.has_id(CommandId.Finish):
                                 break
                         else:
-                            print(invalid_cmd)
+                            sys.stdout.write(invalid_cmd)
+                            sys.stdout.flush()
                             return 1
                 elif c.has_id(CommandId.Finish):
-                    print(install_cancelled)
+                    sys.stdout.write(install_cancelled)
+                    sys.stdout.flush()
                 else:
-                    print(invalid_cmd)
+                    sys.stdout.write(invalid_cmd)
+                    sys.stdout.flush()
                     return 1
             else:
-                print(invalid_cmd)
+                sys.stdout.write(invalid_cmd)
+                sys.stdout.flush()
                 return 1
         elif c.has_id(CommandId.Finish):
-            print(install_cancelled)
+            sys.stdout.write(install_cancelled)
+            sys.stdout.flush()
         else:
-            print(invalid_cmd)
+            sys.stdout.write(invalid_cmd)
+            sys.stdout.flush()
             return 1
     else:
-        print(invalid_cmd)
+        sys.stdout.write(invalid_cmd)
+        sys.stdout.flush()
         return 1
-    print("The installation has finished.")
+    sys.stdout.write("The installation has finished.")
+    sys.stdout.flush()
     #c=Command(CommandId.Finish)
     #write(bytes(c))
     return 0
